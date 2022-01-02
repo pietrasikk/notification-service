@@ -1,6 +1,7 @@
 package com.manning.tutorial.notification.applicationnotificationservice.services;
 
 import com.manning.tutorial.notification.applicationnotificationservice.entities.NotificationEntity;
+import com.manning.tutorial.notification.applicationnotificationservice.entities.NotificationRecordEntity;
 import com.manning.tutorial.notification.applicationnotificationservice.model.NotificationRequest;
 import com.manning.tutorial.notification.applicationnotificationservice.model.NotificationResponse;
 import com.manning.tutorial.notification.applicationnotificationservice.model.notification.preferences.NotificationPreferencesResponse;
@@ -12,6 +13,8 @@ import com.manning.tutorial.notification.applicationnotificationservice.services
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -34,7 +37,7 @@ public class NotificationService {
             sendSms(notificationRequest, userNotificationPreferences, notificationMode, notificationTemplateResponse);
         }
         NotificationEntity entity = notificationRepository.save(getNotificationEntity(notificationRequest, notificationMode));
-        return prepareResponse(entity.getId());
+        return prepareResponse(entity.getNotificationRecords().get(0).getId());
     }
 
     private void sendEmail(NotificationRequest notificationRequest, NotificationPreferencesResponse userNotificationPreferences, String notificationMode, NotificationTemplateResponse notificationTemplateResponse) {
@@ -56,13 +59,33 @@ public class NotificationService {
     }
 
     private NotificationEntity getNotificationEntity(NotificationRequest notificationRequest, String notificationMode) {
+        NotificationRecordEntity notificationRecordEntity = getNotificationRecordEntity(notificationRequest, notificationMode);
+        return getNotificationEntity(notificationRequest, notificationRecordEntity);
+    }
+
+    private NotificationEntity getNotificationEntity(NotificationRequest notificationRequest, NotificationRecordEntity notificationRecordEntity) {
         NotificationEntity notificationEntity = new NotificationEntity();
         notificationEntity.setCustomerId(notificationRequest.getCustomerId());
-        notificationEntity.setNotificationMode(notificationMode);
-        notificationEntity.setTemplate(notificationRequest.getNotificationTemplateName());
-        notificationEntity.setSend(true);
-        notificationEntity.setLocalDateTime(LocalDateTime.now());
+        if (notificationEntity.getNotificationRecords() == null || notificationEntity.getNotificationRecords().isEmpty()) {
+            List<NotificationRecordEntity> list = new ArrayList<>();
+            list.add(notificationRecordEntity);
+            notificationEntity.setNotificationRecords(list);
+        } else {
+            List<NotificationRecordEntity> notificationRecords = notificationEntity.getNotificationRecords();
+            notificationRecords.add(notificationRecordEntity);
+            notificationEntity.setNotificationRecords(notificationRecords);
+        }
         return notificationEntity;
+    }
+
+    private NotificationRecordEntity getNotificationRecordEntity(NotificationRequest notificationRequest, String notificationMode) {
+        NotificationRecordEntity notificationRecordEntity = new NotificationRecordEntity();
+        notificationRecordEntity.setCustomerId(notificationRequest.getCustomerId());
+        notificationRecordEntity.setNotificationMode(notificationMode);
+        notificationRecordEntity.setTemplate(notificationRequest.getNotificationTemplateName());
+        notificationRecordEntity.setSend(true);
+        notificationRecordEntity.setLocalDateTime(LocalDateTime.now());
+        return notificationRecordEntity;
     }
 
     private NotificationResponse prepareResponse(int id) {
