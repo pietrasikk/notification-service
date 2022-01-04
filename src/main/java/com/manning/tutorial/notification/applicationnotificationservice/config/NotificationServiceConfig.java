@@ -11,6 +11,7 @@ import com.manning.tutorial.notification.applicationnotificationservice.services
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationGatewayService;
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationPreferencesService;
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationTemplateService;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 class NotificationServiceConfig {
 
     @Bean
+    @LoadBalanced
     RestTemplate restTemplate() {
         return new RestTemplate();
     }
