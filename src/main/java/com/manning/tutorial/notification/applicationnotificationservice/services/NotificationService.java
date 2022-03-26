@@ -10,6 +10,7 @@ import com.manning.tutorial.notification.applicationnotificationservice.reposito
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationGatewayService;
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationPreferencesService;
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationTemplateService;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +30,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
 
     @CircuitBreaker(name= "sendNotification", fallbackMethod = "fallbackMethod")
+    @Bulkhead(name = "bulkheadSendNotification", fallbackMethod = "fallbackMethod")
     public NotificationResponse sendNotification(NotificationRequest notificationRequest) {
         NotificationPreferencesResponse userNotificationPreferences = notificationPreferencesService.getUserNotificationPreferences(notificationRequest.getCustomerId());
         String notificationMode = getNotificationMode(userNotificationPreferences);
