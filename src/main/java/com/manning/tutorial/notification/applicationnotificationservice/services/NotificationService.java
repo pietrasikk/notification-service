@@ -10,6 +10,7 @@ import com.manning.tutorial.notification.applicationnotificationservice.reposito
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationGatewayService;
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationPreferencesService;
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationTemplateService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ public class NotificationService {
     private final NotificationGatewayService notificationGatewayService;
     private final NotificationRepository notificationRepository;
 
+    @CircuitBreaker(name= "sendNotification", fallbackMethod = "fallbackMethod")
     public NotificationResponse sendNotification(NotificationRequest notificationRequest) {
         NotificationPreferencesResponse userNotificationPreferences = notificationPreferencesService.getUserNotificationPreferences(notificationRequest.getCustomerId());
         String notificationMode = getNotificationMode(userNotificationPreferences);
@@ -90,6 +92,10 @@ public class NotificationService {
 
     private NotificationResponse prepareResponse(int id) {
         return new NotificationResponse("SUCCESS", "Notification Received Successfully", id);
+    }
+
+    private NotificationResponse fallbackMethod(Throwable throwable){
+        return new NotificationResponse("ERROR","Something went wrong", 0);
     }
 
     private String getNotificationMode(NotificationPreferencesResponse userNotificationPreferences) {
