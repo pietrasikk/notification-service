@@ -12,6 +12,7 @@ import com.manning.tutorial.notification.applicationnotificationservice.services
 import com.manning.tutorial.notification.applicationnotificationservice.services.notification.NotificationTemplateService;
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +34,7 @@ public class NotificationService {
     @CircuitBreaker(name= "sendNotification", fallbackMethod = "fallbackMethod")
     @Bulkhead(name = "bulkheadSendNotification", fallbackMethod = "fallbackMethod")
     @Retry(name = "retrySendNotification", fallbackMethod = "fallbackMethod")
+    @RateLimiter(name = "rateLimiterSendNotification", fallbackMethod = "fallbackMethod")
     public NotificationResponse sendNotification(NotificationRequest notificationRequest) {
         NotificationPreferencesResponse userNotificationPreferences = notificationPreferencesService.getUserNotificationPreferences(notificationRequest.getCustomerId());
         String notificationMode = getNotificationMode(userNotificationPreferences);
