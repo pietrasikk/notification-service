@@ -15,6 +15,8 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,12 +32,14 @@ public class NotificationService {
     private final NotificationTemplateService notificationTemplateService;
     private final NotificationGatewayService notificationGatewayService;
     private final NotificationRepository notificationRepository;
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @CircuitBreaker(name= "sendNotification", fallbackMethod = "fallbackMethod")
     @Bulkhead(name = "bulkheadSendNotification", fallbackMethod = "fallbackMethod")
     @Retry(name = "retrySendNotification", fallbackMethod = "fallbackMethod")
     @RateLimiter(name = "rateLimiterSendNotification", fallbackMethod = "fallbackMethod")
     public NotificationResponse sendNotification(NotificationRequest notificationRequest) {
+        logger.info("In the Notification Service API Class");
         NotificationPreferencesResponse userNotificationPreferences = notificationPreferencesService.getUserNotificationPreferences(notificationRequest.getCustomerId());
         String notificationMode = getNotificationMode(userNotificationPreferences);
         NotificationTemplateResponse notificationTemplateResponse = notificationTemplateService.getNotificationTemplate(notificationRequest, notificationMode);
